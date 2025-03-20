@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection.Emit;
 
 namespace SharpUtilities
 {
@@ -33,24 +32,10 @@ namespace SharpUtilities
 
         static MemoryBuffer()
         {
-            var dynamicMethod = new DynamicMethod
-            (
-                nameof(MemCpy),
-                typeof(void),
-                new[] { typeof(void*), typeof(void*), typeof(uint) },
-                typeof(MemoryBuffer)
-            );
-
-            var ilGenerator = dynamicMethod.GetILGenerator();
-
-            ilGenerator.Emit(OpCodes.Ldarg_0);
-            ilGenerator.Emit(OpCodes.Ldarg_1);
-            ilGenerator.Emit(OpCodes.Ldarg_2);
-
-            ilGenerator.Emit(OpCodes.Cpblk);
-            ilGenerator.Emit(OpCodes.Ret);
-
-            MemCpy = (MemCpyFunction)dynamicMethod.CreateDelegate(typeof(MemCpyFunction));
+            MemCpy = (d, s, bytes) => {
+                new Span<byte>(s, (int)bytes)
+                    .CopyTo(new Span<byte>(d, (int)bytes));
+            };
         }
 
         /// <summary>
